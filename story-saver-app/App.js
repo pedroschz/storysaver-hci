@@ -17,6 +17,7 @@ import {
 } from './mockData';
 
 const COLORS = {
+  white: '#FFFFFF',
   lightBeige: '#E9DFD8',
   lightPink: '#E7B3B0',
   mediumPink: '#E05C73',
@@ -554,7 +555,7 @@ function StoryDetailScreen({ navigation, route }) {
   const suggestable = SUGGESTED_TAGS.filter(t => !tags.includes(t));
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#fff' }} contentContainerStyle={{ paddingBottom: 30 }}>
+    <ScrollView style={{ flex: 1, backgroundColor: COLORS.lightBeige }} contentContainerStyle={{ paddingBottom: 30 }}>
       <Image source={{ uri: post.image }} style={styles.storyHeroImage} />
 
       <View style={styles.storyMetaBlock}>
@@ -803,7 +804,7 @@ function FriendProfileScreen({ navigation, route }) {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+    <View style={{ flex: 1, backgroundColor: COLORS.lightBeige }}>
       <FlatList
         data={posts}
         keyExtractor={item => item.id}
@@ -1130,11 +1131,19 @@ export default function App() {
         if (storedUser) setCurrentUserId(storedUser);
 
         const mems = storedMemories ? JSON.parse(storedMemories) : mockMemories;
-        const migrated = mems.map(m => ({
-          ...m,
-          tags: m.tags || [],
-          timestamp: m.timestamp || Date.parse(m.date) || Date.now(),
-        }));
+        const migrated = mems.map(m => {
+          // Replace any stale picsum placeholder URLs with the new relevant images
+          const freshMock = mockMemories.find(mock => mock.id === m.id);
+          const image = (m.image || '').includes('picsum.photos') && freshMock
+            ? freshMock.image
+            : m.image;
+          return {
+            ...m,
+            image,
+            tags: m.tags || [],
+            timestamp: m.timestamp || Date.parse(m.date) || Date.now(),
+          };
+        });
         setMemories(migrated);
 
         setChats(storedChats ? JSON.parse(storedChats) : mockChats);
@@ -1301,8 +1310,8 @@ export default function App() {
 // --- STYLES --- //
 
 const styles = StyleSheet.create({
-  centerContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' },
-  scrollContainer: { flex: 1, backgroundColor: '#fff' },
+  centerContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.lightBeige },
+  scrollContainer: { flex: 1, backgroundColor: COLORS.lightBeige },
   helperText: { color: '#777', fontSize: 13, lineHeight: 18 },
   helperTextCentered: { textAlign: 'center', color: '#999', marginTop: 20, fontSize: 13 },
 
@@ -1316,7 +1325,7 @@ const styles = StyleSheet.create({
   loginSubtitle: { fontSize: 15, color: '#666', marginTop: 5, fontWeight: '500' },
   loginList: { gap: 12 },
   loginCard: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white,
     padding: 15, borderRadius: 14,
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08, shadowRadius: 4, elevation: 3,
@@ -1334,7 +1343,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center', padding: 24,
   },
   onboardCard: {
-    width: '100%', backgroundColor: '#fff', borderRadius: 20,
+    width: '100%', backgroundColor: COLORS.white, borderRadius: 20,
     padding: 24, alignItems: 'center',
     shadowColor: '#000', shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.18, shadowRadius: 12, elevation: 8,
@@ -1363,7 +1372,7 @@ const styles = StyleSheet.create({
   onboardNextText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
 
   // Gallery
-  galleryContainer: { flex: 1, backgroundColor: '#fff' },
+  galleryContainer: { flex: 1, backgroundColor: COLORS.lightBeige },
   galleryHeader: {
     paddingTop: 18, paddingBottom: 14, paddingHorizontal: 20,
     backgroundColor: COLORS.lightBeige,
@@ -1373,13 +1382,13 @@ const styles = StyleSheet.create({
 
   searchWrap: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#fff', borderWidth: 1, borderColor: COLORS.lightPink,
+    backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.lightPink,
     borderRadius: 22, marginHorizontal: 15, marginTop: 12,
     paddingHorizontal: 14, paddingVertical: Platform.OS === 'ios' ? 10 : 6,
   },
   searchInput: { flex: 1, fontSize: 14, color: '#333', padding: 0 },
 
-  userStripContainer: { backgroundColor: '#fff', paddingTop: 14, paddingBottom: 6 },
+  userStripContainer: { backgroundColor: COLORS.white, paddingTop: 14, paddingBottom: 6 },
   userStrip: { paddingHorizontal: 15, alignItems: 'center' },
   userIconContainer: { alignItems: 'center', marginRight: 18 },
   userIconCircle: {
@@ -1392,10 +1401,10 @@ const styles = StyleSheet.create({
   userIconName: { fontSize: 12, color: '#666', fontWeight: '500' },
   userIconNameActive: { color: COLORS.darkBurgundy, fontWeight: 'bold' },
 
-  tagFilterRow: { paddingVertical: 6, backgroundColor: '#fff' },
+  tagFilterRow: { paddingVertical: 6, backgroundColor: COLORS.white },
   tagFilterChip: {
     paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14,
-    borderWidth: 1, borderColor: COLORS.lightPink, backgroundColor: '#fff',
+    borderWidth: 1, borderColor: COLORS.lightPink, backgroundColor: COLORS.white,
     marginRight: 8,
   },
   tagFilterChipActive: { backgroundColor: COLORS.mediumPink, borderColor: COLORS.mediumPink },
@@ -1404,7 +1413,7 @@ const styles = StyleSheet.create({
 
   toolbarRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 15, paddingTop: 8, paddingBottom: 6, backgroundColor: '#fff',
+    paddingHorizontal: 15, paddingTop: 8, paddingBottom: 6, backgroundColor: COLORS.white,
   },
   viewToggle: {
     flexDirection: 'row', backgroundColor: COLORS.lightBeige, borderRadius: 16, padding: 3,
@@ -1417,13 +1426,13 @@ const styles = StyleSheet.create({
   viewToggleText: { color: COLORS.darkBurgundy, fontSize: 12, fontWeight: '600' },
   sortButton: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: '#fff', paddingHorizontal: 10, paddingVertical: 6,
+    backgroundColor: COLORS.white, paddingHorizontal: 10, paddingVertical: 6,
     borderRadius: 14, borderWidth: 1, borderColor: COLORS.lightPink,
   },
   sortButtonText: { color: COLORS.darkBurgundy, fontWeight: '600', fontSize: 13 },
   clearFiltersRow: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
-    paddingHorizontal: 15, paddingBottom: 4, backgroundColor: '#fff',
+    paddingHorizontal: 15, paddingBottom: 4, backgroundColor: COLORS.white,
   },
   clearFiltersText: { color: COLORS.mediumPink, fontSize: 12, fontWeight: '600' },
 
@@ -1503,7 +1512,7 @@ const styles = StyleSheet.create({
     flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end',
   },
   sortMenu: {
-    backgroundColor: '#fff', padding: 20,
+    backgroundColor: COLORS.white, padding: 20,
     borderTopLeftRadius: 20, borderTopRightRadius: 20,
   },
   sortMenuTitle: {
@@ -1516,7 +1525,7 @@ const styles = StyleSheet.create({
   sortMenuText: { fontSize: 15, color: '#333' },
 
   actionSheet: {
-    backgroundColor: '#fff', padding: 18,
+    backgroundColor: COLORS.white, padding: 18,
     borderTopLeftRadius: 20, borderTopRightRadius: 20,
   },
   actionSheetTitle: {
@@ -1607,14 +1616,14 @@ const styles = StyleSheet.create({
   listContainer: { flex: 1, backgroundColor: COLORS.lightBeige },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    padding: 15, backgroundColor: '#fff',
+    padding: 15, backgroundColor: COLORS.white,
     borderBottomWidth: 1, borderBottomColor: COLORS.lightPink,
   },
   headerTitle: { fontSize: 20, fontWeight: 'bold', color: COLORS.darkBurgundy },
   listContent: { padding: 15 },
   friendCard: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#fff', padding: 15, borderRadius: 12,
+    backgroundColor: COLORS.white, padding: 15, borderRadius: 12,
     marginBottom: 10, borderWidth: 1, borderColor: COLORS.lightPink,
   },
   friendAvatar: { width: 50, height: 50, borderRadius: 25, marginRight: 15 },
@@ -1633,7 +1642,7 @@ const styles = StyleSheet.create({
   profileUsername: { fontSize: 16, color: '#666', marginBottom: 10 },
   profileBio: { fontSize: 14, color: '#333', textAlign: 'center', paddingHorizontal: 20 },
   statsContainer: {
-    flexDirection: 'row', backgroundColor: '#fff', borderRadius: 12,
+    flexDirection: 'row', backgroundColor: COLORS.white, borderRadius: 12,
     paddingVertical: 15, marginBottom: 30,
     borderWidth: 1, borderColor: COLORS.lightPink,
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
@@ -1644,7 +1653,7 @@ const styles = StyleSheet.create({
   statNumber: { fontSize: 22, fontWeight: 'bold', color: COLORS.mediumPink, marginBottom: 5 },
   statLabel: { fontSize: 14, color: '#666' },
   settingsSection: {
-    backgroundColor: '#fff', borderRadius: 12, padding: 15,
+    backgroundColor: COLORS.white, borderRadius: 12, padding: 15,
     borderWidth: 1, borderColor: COLORS.lightPink,
   },
   sectionTitle: {
@@ -1685,7 +1694,7 @@ const styles = StyleSheet.create({
   detailContainer: { flex: 1, backgroundColor: COLORS.lightBeige },
   chatHeader: {
     flexDirection: 'row', alignItems: 'center',
-    padding: 12, backgroundColor: '#fff',
+    padding: 12, backgroundColor: COLORS.white,
     borderBottomWidth: 1, borderBottomColor: COLORS.lightPink,
   },
   chatHeaderAvatar: { width: 40, height: 40, borderRadius: 20, marginRight: 12 },
@@ -1694,7 +1703,7 @@ const styles = StyleSheet.create({
   chatScroll: { paddingHorizontal: 15, paddingVertical: 10, paddingBottom: 20 },
   activePostBanner: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#fff', padding: 10, borderRadius: 12, marginBottom: 15,
+    backgroundColor: COLORS.white, padding: 10, borderRadius: 12, marginBottom: 15,
     borderLeftWidth: 3, borderLeftColor: COLORS.mediumPink,
   },
   activePostImage: { width: 44, height: 44, borderRadius: 8 },
@@ -1711,7 +1720,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.mediumPink, borderBottomRightRadius: 5,
   },
   messageThem: {
-    backgroundColor: '#fff', borderBottomLeftRadius: 5,
+    backgroundColor: COLORS.white, borderBottomLeftRadius: 5,
     borderWidth: 1, borderColor: COLORS.lightBeige,
   },
   messageBubblePinned: {
@@ -1747,7 +1756,7 @@ const styles = StyleSheet.create({
   },
   reactionPill: {
     flexDirection: 'row', alignItems: 'center', gap: 3,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderWidth: 1, borderColor: COLORS.lightPink,
     paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10,
   },
@@ -1757,7 +1766,7 @@ const styles = StyleSheet.create({
 
   promptBar: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     paddingHorizontal: 12, paddingVertical: 8,
     borderTopWidth: 1, borderTopColor: COLORS.lightBeige,
   },
@@ -1775,7 +1784,7 @@ const styles = StyleSheet.create({
   chatInputBar: {
     flexDirection: 'row', alignItems: 'center',
     padding: 10, paddingBottom: Platform.OS === 'ios' ? 25 : 10,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderTopWidth: 1, borderTopColor: COLORS.lightPink,
   },
   chatInput: {

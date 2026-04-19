@@ -3,7 +3,8 @@ export const USERS = {
     id: 'jane',
     name: 'Jane Doe',
     username: '@jane_storysaver',
-    avatar: 'https://picsum.photos/seed/janeAvatar/100/100',
+    // Woman smiling, warm tones — Unsplash (photo by Allef Vinicius, free)
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&q=80',
     bio: 'Preserving memories, one story at a time.',
     friends: ['alice', 'bob', 'charlie'],
   },
@@ -11,7 +12,8 @@ export const USERS = {
     id: 'alice',
     name: 'Alice Smith',
     username: '@alice',
-    avatar: 'https://picsum.photos/seed/aliceAvatar/100/100',
+    // Woman laughing outdoors — Unsplash (photo by Brooke Cagle, free)
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&q=80',
     bio: 'Adventure seeker & coffee lover.',
     friends: ['jane', 'charlie'],
   },
@@ -19,7 +21,8 @@ export const USERS = {
     id: 'bob',
     name: 'Bob Johnson',
     username: '@bobj',
-    avatar: 'https://picsum.photos/seed/bobAvatar/100/100',
+    // Man smiling, casual — Unsplash (photo by Joseph Gonzalez, free)
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&q=80',
     bio: 'Living one day at a time.',
     friends: ['jane', 'charlie'],
   },
@@ -27,7 +30,8 @@ export const USERS = {
     id: 'charlie',
     name: 'Charlie Davis',
     username: '@charlie_d',
-    avatar: 'https://picsum.photos/seed/charlieAvatar/100/100',
+    // Man outdoors portrait — Unsplash (photo by Christian Buehner, free)
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&q=80',
     bio: 'Photographer & hiker.',
     friends: ['jane', 'alice', 'bob'],
   },
@@ -49,7 +53,8 @@ export const mockMemories = [
     title: 'Beach Day at Santa Monica',
     date: 'July 15, 2025',
     timestamp: ts(2025, 7, 15),
-    image: 'https://picsum.photos/seed/beach/400/500',
+    // People walking on Santa Monica beach at sunset — Unsplash (Tommaso Teloni, free)
+    image: 'https://images.unsplash.com/photo-1622583529718-b68ded6804d8?w=400&h=500&fit=crop&q=80',
     userId: 'alice',
     tags: ['beach', 'travel'],
   },
@@ -58,7 +63,8 @@ export const mockMemories = [
     title: 'Graduation Ceremony',
     date: 'May 20, 2025',
     timestamp: ts(2025, 5, 20),
-    image: 'https://picsum.photos/seed/grad/400/500',
+    // Graduates in caps & gowns celebrating — Pexels (Emily Ranquist, free)
+    image: 'https://images.pexels.com/photos/1205651/pexels-photo-1205651.jpeg?auto=compress&cs=tinysrgb&w=400&h=500&fit=crop',
     userId: 'bob',
     tags: ['school', 'family'],
   },
@@ -67,7 +73,8 @@ export const mockMemories = [
     title: 'Hiking in Yosemite',
     date: 'September 5, 2025',
     timestamp: ts(2025, 9, 5),
-    image: 'https://picsum.photos/seed/hike/400/500',
+    // Yosemite Valley with El Capitan and Half Dome — Unsplash (Anna Iurova, free)
+    image: 'https://images.unsplash.com/photo-1764027052811-aee7f812e41d?w=400&h=500&fit=crop&q=80',
     userId: 'charlie',
     tags: ['hike', 'travel'],
   },
@@ -76,7 +83,8 @@ export const mockMemories = [
     title: 'Christmas Eve Dinner',
     date: 'December 24, 2025',
     timestamp: ts(2025, 12, 24),
-    image: 'https://picsum.photos/seed/xmas/400/500',
+    // Festive Christmas table with lights & decorations — Unsplash (Dragon White Munthe, free)
+    image: 'https://images.unsplash.com/photo-1763463608554-1a1d7ec7147b?w=400&h=500&fit=crop&q=80',
     userId: 'alice',
     tags: ['holiday', 'family', 'food'],
   },
@@ -85,7 +93,8 @@ export const mockMemories = [
     title: 'Road Trip to Vegas',
     date: 'March 10, 2026',
     timestamp: ts(2026, 3, 10),
-    image: 'https://picsum.photos/seed/vegas/400/500',
+    // Las Vegas Strip at night, neon lights — Unsplash (Tom Podmore, free)
+    image: 'https://images.unsplash.com/photo-1684575571081-d6abda485519?w=400&h=500&fit=crop&q=80',
     userId: 'bob',
     tags: ['roadtrip', 'travel'],
   },
@@ -94,7 +103,8 @@ export const mockMemories = [
     title: 'Coffee Date',
     date: 'Mar 18, 2026',
     timestamp: ts(2026, 3, 18),
-    image: 'https://picsum.photos/seed/coffee/400/500',
+    // Friends laughing together at a coffee shop — Unsplash (Brooke Cagle, free)
+    image: 'https://images.unsplash.com/photo-1543269865-cbf427effbad?w=400&h=500&fit=crop&q=80',
     userId: 'charlie',
     tags: ['coffee', 'food'],
   },
@@ -103,7 +113,8 @@ export const mockMemories = [
     title: 'Park Picnic',
     date: 'Feb 22, 2026',
     timestamp: ts(2026, 2, 22),
-    image: 'https://picsum.photos/seed/picnic/400/500',
+    // Friends enjoying a picnic on the grass — Pexels (Andrea Piacquadio, free)
+    image: 'https://images.pexels.com/photos/3776870/pexels-photo-3776870.jpeg?auto=compress&cs=tinysrgb&w=400&h=500&fit=crop',
     userId: 'alice',
     tags: ['food', 'family'],
   },
@@ -112,7 +123,8 @@ export const mockMemories = [
     title: 'San Diego Summer',
     date: 'June 14, 2025',
     timestamp: ts(2025, 6, 14),
-    image: 'https://picsum.photos/seed/sandiego/400/500',
+    // Path to La Jolla Shores beach with palm trees — Unsplash (Christopher Magat, free)
+    image: 'https://images.unsplash.com/photo-1739157288855-498e38456a59?w=400&h=500&fit=crop&q=80',
     userId: 'bob',
     tags: ['beach', 'travel'],
   },
