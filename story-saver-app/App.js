@@ -505,10 +505,43 @@ function EmptyGallery({ onAdd, hasFilters }) {
 // --- STORY DETAIL --- //
 
 function StoryDetailScreen({ navigation, route }) {
-  const { memories, chats, currentUser, updateMemoryTags } = useContext(AppContext);
+  const { memories, chats, currentUser, updateMemoryTags, deleteMemory } = useContext(AppContext);
   const { postId } = route.params;
   const post = memories.find(m => m.id === postId);
   const [tagInput, setTagInput] = useState('');
+
+  const isMine = post?.userId === currentUser.id;
+
+  // Show delete button in header only for own stories
+  useEffect(() => {
+    if (!isMine) return;
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() =>
+            Alert.alert(
+              'Delete story',
+              'This will permanently remove the story and cannot be undone.',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Delete',
+                  style: 'destructive',
+                  onPress: () => {
+                    deleteMemory(postId);
+                    navigation.goBack();
+                  },
+                },
+              ]
+            )
+          }
+          style={{ marginRight: 4 }}
+        >
+          <Ionicons name="trash-outline" size={22} color={COLORS.mediumPink} />
+        </TouchableOpacity>
+      ),
+    });
+  }, [isMine, postId]);
 
   if (!post) {
     return (
@@ -519,7 +552,6 @@ function StoryDetailScreen({ navigation, route }) {
   }
 
   const author = USERS[post.userId];
-  const isMine = post.userId === currentUser.id;
   const tags = post.tags || [];
 
   const friends = currentUser.friends.map(id => USERS[id]).filter(Boolean);
@@ -555,7 +587,7 @@ function StoryDetailScreen({ navigation, route }) {
   const suggestable = SUGGESTED_TAGS.filter(t => !tags.includes(t));
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: COLORS.lightBeige }} contentContainerStyle={{ paddingBottom: 30 }}>
+    <ScrollView style={{ flex: 1, backgroundColor: COLORS.white }} contentContainerStyle={{ paddingBottom: 30 }}>
       <Image source={{ uri: post.image }} style={styles.storyHeroImage} />
 
       <View style={styles.storyMetaBlock}>
@@ -804,7 +836,7 @@ function FriendProfileScreen({ navigation, route }) {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: COLORS.lightBeige }}>
+    <View style={{ flex: 1, backgroundColor: COLORS.white }}>
       <FlatList
         data={posts}
         keyExtractor={item => item.id}
@@ -1098,7 +1130,7 @@ function TabNavigator() {
         },
         tabBarActiveTintColor: COLORS.darkBurgundy,
         tabBarInactiveTintColor: COLORS.mediumPink,
-        headerStyle: { backgroundColor: COLORS.lightBeige },
+        headerStyle: { backgroundColor: COLORS.white },
         headerTintColor: COLORS.darkBurgundy,
         headerTitleStyle: { fontWeight: 'bold' },
       })}
@@ -1183,6 +1215,10 @@ export default function App() {
 
   const addMemory = (newMemory) => persistMemories([newMemory, ...memories]);
 
+  const deleteMemory = (postId) => {
+    persistMemories(memories.filter(m => m.id !== postId));
+  };
+
   const updateMemoryTags = (postId, tags) => {
     persistMemories(memories.map(m => (m.id === postId ? { ...m, tags } : m)));
   };
@@ -1258,7 +1294,7 @@ export default function App() {
   return (
     <AppContext.Provider value={{
       memories, chats, currentUser,
-      addMemory, updateMemoryTags,
+      addMemory, deleteMemory, updateMemoryTags,
       sendMessage, sendAutoReply,
       togglePinMessage, reactToMessage,
       login, logout, replayOnboarding,
@@ -1266,7 +1302,7 @@ export default function App() {
       <NavigationContainer>
         <Stack.Navigator
           screenOptions={{
-            headerStyle: { backgroundColor: COLORS.lightBeige },
+            headerStyle: { backgroundColor: COLORS.white },
             headerTintColor: COLORS.darkBurgundy,
             headerTitleStyle: { fontWeight: 'bold' },
           }}
@@ -1310,14 +1346,14 @@ export default function App() {
 // --- STYLES --- //
 
 const styles = StyleSheet.create({
-  centerContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.lightBeige },
-  scrollContainer: { flex: 1, backgroundColor: COLORS.lightBeige },
+  centerContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.white },
+  scrollContainer: { flex: 1, backgroundColor: COLORS.white },
   helperText: { color: '#777', fontSize: 13, lineHeight: 18 },
   helperTextCentered: { textAlign: 'center', color: '#999', marginTop: 20, fontSize: 13 },
 
   // Login
   loginContainer: {
-    flex: 1, backgroundColor: COLORS.lightBeige,
+    flex: 1, backgroundColor: COLORS.white,
     justifyContent: 'center', paddingHorizontal: 30,
   },
   loginHeader: { alignItems: 'center', marginBottom: 40 },
@@ -1372,10 +1408,10 @@ const styles = StyleSheet.create({
   onboardNextText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
 
   // Gallery
-  galleryContainer: { flex: 1, backgroundColor: COLORS.lightBeige },
+  galleryContainer: { flex: 1, backgroundColor: COLORS.white },
   galleryHeader: {
     paddingTop: 18, paddingBottom: 14, paddingHorizontal: 20,
-    backgroundColor: COLORS.lightBeige,
+    backgroundColor: COLORS.white,
   },
   galleryTitle: { fontSize: 26, fontWeight: 'bold', color: COLORS.darkBurgundy },
   gallerySubtitle: { fontSize: 12, color: '#7a4a55', marginTop: 2, fontWeight: '500' },
@@ -1613,7 +1649,7 @@ const styles = StyleSheet.create({
   threadBadgeText: { color: '#fff', fontSize: 11, fontWeight: 'bold' },
 
   // Friends
-  listContainer: { flex: 1, backgroundColor: COLORS.lightBeige },
+  listContainer: { flex: 1, backgroundColor: COLORS.white },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     padding: 15, backgroundColor: COLORS.white,
@@ -1670,7 +1706,7 @@ const styles = StyleSheet.create({
   // Friend profile
   friendProfileHeader: {
     alignItems: 'center', paddingVertical: 30, paddingHorizontal: 20,
-    backgroundColor: COLORS.lightBeige,
+    backgroundColor: COLORS.white,
   },
   primaryButton: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
@@ -1691,7 +1727,7 @@ const styles = StyleSheet.create({
   authorTagText: { color: '#fff', fontSize: 10, fontWeight: 'bold' },
 
   // Chat
-  detailContainer: { flex: 1, backgroundColor: COLORS.lightBeige },
+  detailContainer: { flex: 1, backgroundColor: COLORS.white },
   chatHeader: {
     flexDirection: 'row', alignItems: 'center',
     padding: 12, backgroundColor: COLORS.white,

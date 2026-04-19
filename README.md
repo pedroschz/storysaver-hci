@@ -1,100 +1,157 @@
-# Story Saver A5 Implementation Prototypes
+# Story Saver — HCI Prototype
 
-**Team Members:** Pedro Sánchez-Gil, Zachary Gin, Stanley Jin
-**Code Attribution:** Initial codebase generation drafted by Gemini 3.1 Pro (via Cursor), with revisions and UI design implementations by Pedro Sánchez-Gil, Zachary Gin, and Stanley Jin.
+**Team Members:** Pedro Sánchez-Gil, Zachary Gin, Stanley Jin  
+**Mentor:** Stacy  
+**Code Attribution:** Initial codebase drafted with AI assistance (Cursor), with feature design, implementation, and UI decisions by Pedro Sánchez-Gil, Zachary Gin, and Stanley Jin.
 
 ## Overview
-This repository contains the Story Saver prototype, a standalone React Native (Expo) app built for Assignment 5.
 
-- **`story-saver-app`** *(active)*: The core prototype. A mock multi-user social app where each user has their own gallery of photo "stories", a friends list, and private one-on-one chat threads that can optionally reference a specific post. Photos are imported directly from the device photo library, and all state (current user, stories, chat threads) persists across sessions via `AsyncStorage`.
-- **`insta-mock-app`** *(deprecated, kept for reference)*: An earlier prototype that demonstrated cross-app deep linking from a simulated Instagram client into Story Saver. This app is no longer part of the active flow; Story Saver is now fully standalone and adds stories directly from the device's Photos app.
+Story Saver is a React Native (Expo) prototype that lets friends **save the story behind every photo** — not just the image, but the conversation and memories that give it meaning. Users build a shared gallery of photo stories, organize them with tags, and chat with friends directly about specific memories. The best moments from those conversations can be pinned back to the photo, becoming a permanent record of the story.
+
+- **`story-saver-app`** *(active)*: The core prototype. A mock multi-user social app with a photo gallery, tagging, rich filtering, private chats, reactions, and story pinning. All state persists via `AsyncStorage`.
+- **`insta-mock-app`** *(deprecated, kept for reference)*: An earlier prototype that demonstrated cross-app deep linking from a simulated Instagram client. No longer part of the active flow.
 
 ---
 
 ## Prerequisites
 
-To run the prototype, you will need:
 1. **Node.js** installed on your computer.
 2. The **Expo Go** app installed on your physical iOS or Android device.
-3. Both your computer and your mobile device must be connected to the **same Wi-Fi network**.
+3. Both your computer and your device must be on the **same Wi-Fi network**.
 
 ---
 
 ## Running the Prototype
 
-1. Open a terminal and navigate to the `story-saver-app` directory:
-   ```bash
-   cd story-saver-app
-   ```
-2. Install dependencies (only required the first time):
-   ```bash
-   npm install
-   ```
-3. Start the Expo development server:
-   ```bash
-   npx expo start
-   ```
-4. Open the **Camera** app on your phone and scan the QR code in the terminal.
-5. Tap the prompt to open it in **Expo Go**.
+```bash
+cd story-saver-app
+npm install          # first time only
+npx expo start
+```
 
-> The first time you add a story, iOS/Android will prompt for access to your photo library. Allow access to use the "Add Story" flow.
+Scan the QR code in the terminal with your phone's camera (iOS) or the Expo Go app (Android).
+
+> The first time you add a story, iOS/Android will prompt for photo library access. Allow it to use the Add Story flow.
 
 ---
 
 ## Feature Walkthrough
 
-### 1. Mock Multi-User Login
-When the app launches (and any time you log out), you land on a **Login** screen listing four mock accounts: Jane, Alice, Bob, and Charlie. Tapping one logs you in as that user. The current user is persisted, so restarting the app keeps you signed in until you tap **Log Out** in the Profile tab.
+### 1. Onboarding
+First-time users (per account) see a **3-step onboarding overlay** that explains the core flow: save a photo → organize it → save the story behind it. Can be replayed from **Profile → Show intro again**.
 
-Each user has their own avatar, bio, and friends list defined in [`story-saver-app/mockData.js`](./story-saver-app/mockData.js).
+### 2. Mock Multi-User Login
+The Login screen lists four mock accounts: **Jane, Alice, Bob, and Charlie**. Tap any name to sign in. Session is persisted via `AsyncStorage` — restarting the app keeps you signed in until you tap **Log Out**.
 
-### 2. Gallery (Home tab)
-Shows all stories from you and your friends, with a horizontal strip to filter by author ("All", "Me", or any friend). Tapping a story opens the **"Chat about post"** flow — pick which friend you want to discuss the post with.
+User profiles, avatars, bios, and friend relationships are defined in [`mockData.js`](./story-saver-app/mockData.js).
 
-A floating **+** button opens the device's photo library (via `expo-image-picker`) and adds the selected image as a new story owned by the currently logged-in user.
+### 3. Gallery (Home tab)
+Displays all stories from you and your friends in a **2-column grid or month-grouped Timeline view** (toggle at the top).
 
-### 3. Friends tab
-Shows your friends. Tapping a friend opens their **Friend Profile** screen, which displays their bio and a combined grid of posts from both of you. Each post is tagged with its author; tapping one opens a chat with that friend pre-filled with the post as context. There is also an **Open Chat** button to start a chat without referencing a post.
+**Organization features:**
+- **Search bar** — full-text search across story titles and tags.
+- **Friend filter strip** — tap "All", "Me", or any friend's avatar to filter by author.
+- **Tag filter chips** — tap one or more tags to filter by topic (OR logic); multiple tags can be active simultaneously.
+- **Sort menu** — sort by Newest, Oldest, or A–Z title.
+- **Story count** — live count of stories matching the current filters.
+- **Clear filters** — one-tap reset when filters are active.
 
-### 4. Private Chats
-Chats are strictly one-on-one between the logged-in user and another user, keyed by the sorted pair of user IDs. A message may optionally carry a `postId`, in which case the referenced post appears as a small card inside the message bubble — mirroring the "reply to story" interaction on Instagram.
+Each gallery card shows:
+- The photo with title and date overlay.
+- Up to 2 tag chips in the top-left corner.
+- A chat-bubble badge (top-right) showing how many messages exist about that story.
 
-Because chats and stories are persisted, you can:
-1. Log in as **Jane**, post a new story, and send Alice a message about it.
-2. Log out, log in as **Alice**, open Jane's profile, tap Jane's post, and see Jane's message waiting.
-3. Reply as Alice, log back in as Jane, and see the reply.
+Tapping a story opens **Story Detail**. The floating **+** button opens the device photo library to add a new story.
 
-### 5. Profile tab
-Displays the current user's avatar, bio, story count, and friend count. Contains the **Log Out** action that clears the active session and returns you to the Login screen.
+### 4. Story Detail
+A full-screen view of a story with:
+
+- **"The story so far"** — pinned chat highlights about this photo, shown as quoted cards with author and timestamp. This is the core feature: the conversation *becomes* the story.
+- **Tags** — editable inline. Tap a filled chip to remove it, type a custom tag, or tap from a row of suggested tags.
+- **Conversations** — a list of every friend you can chat with about this story, each showing the last message and a message count badge. Tap to open that chat.
+- **Delete** — owners see a trash icon in the navigation header. Tapping it shows a confirmation alert before permanently deleting the story.
+
+### 5. Private Chats
+One-on-one chats keyed by the sorted pair of user IDs, persisted via `AsyncStorage`.
+
+**Interactions:**
+- The "About this story" banner at the top of the chat anchors the conversation to a specific photo.
+- **Story prompt bar** — a rotating conversation starter ("What do you remember most about this day?", "Who took this photo?", etc.) appears above the input when chatting about a post. Tap to send it as a message.
+- **Typing indicator** — after you send a message, the friend's username changes to "typing…" and a typing bubble appears, followed by a simulated reply (~1.4 s). Makes demos feel alive.
+- **Long-press any message** to open an action sheet with:
+  - **Reactions** (❤️ 😂 🔥 😢 👍) — tap to toggle. Reaction counts render as pills below the bubble.
+  - **Pin to story / Unpin** — pins the message back to the Story Detail screen, building "the story so far".
+
+### 6. Friends Tab
+Lists your friends. Tapping one opens their **Friend Profile**, showing their bio and a combined grid of shared posts. Tapping a post opens Story Detail for that memory. The **Open Chat** button starts a general chat without a story context.
+
+### 7. Profile Tab
+Shows your avatar, bio, story count, and friend count. Settings rows for Notifications, Privacy, Show intro again, and **Log Out**.
 
 ---
 
-## Technical Requirements Core Code Snippets
+## Technical Highlights
 
-1. **Mock Authentication & Session Persistence**: [`LoginScreen`](./story-saver-app/App.js) and the `login`/`logout`/AsyncStorage hydration logic inside the top-level `App` component in [`story-saver-app/App.js`](./story-saver-app/App.js).
-2. **Interactive Memory Gallery**: `GalleryScreen` in [`story-saver-app/App.js`](./story-saver-app/App.js), including the `FlatList` 2-column grid and the friend-filter strip.
-3. **State-Based Data Filtering**: Filtering by `filterUserId` inside `GalleryScreen`.
-4. **Photo Library Integration**: The `pickImage` handler in `GalleryScreen` using `expo-image-picker`.
-5. **Private Chat System**:
-   - Data model: `chatKey(a, b)` and `mockChats` in [`story-saver-app/mockData.js`](./story-saver-app/mockData.js).
-   - Persistence: `sendMessage` and `persistChats` in the top-level `App` component.
-   - UI: `ChatScreen`, including the "About this post" banner and per-message post-reference cards.
-6. **Friend Profile Flow**: `FriendProfileScreen` in [`story-saver-app/App.js`](./story-saver-app/App.js), which lists shared posts and routes into `ChatScreen`.
-7. **Post → Partner Selection Flow**: `SelectChatPartnerScreen` in [`story-saver-app/App.js`](./story-saver-app/App.js).
-8. **Multi-Screen Navigation**: `TabNavigator` and the top-level `Stack.Navigator` inside `App` in [`story-saver-app/App.js`](./story-saver-app/App.js).
+| Feature | Location |
+|---|---|
+| Mock auth & session persistence | `LoginScreen`, `login`/`logout`/AsyncStorage hydration in `App` |
+| Onboarding overlay | `OnboardingOverlay` component, `STORAGE_KEYS.ONBOARDED` |
+| Gallery grid + timeline view | `GalleryScreen` — `FlatList` (grid) / `SectionList` (timeline) |
+| Search, multi-tag filter, sort | `displayedMemories` `useMemo` in `GalleryScreen` |
+| Photo library import | `pickImage` in `GalleryScreen` via `expo-image-picker` |
+| Story Detail with pinned highlights | `StoryDetailScreen`, `pinnedMessages` useMemo |
+| Tag editing & suggestions | `addTag`/`removeTag` in `StoryDetailScreen`, `SUGGESTED_TAGS` in `mockData.js` |
+| Delete story | `deleteMemory` in `App`, header trash button in `StoryDetailScreen` |
+| Private chat system | `ChatScreen`, `chatKey`, `sendMessage`/`persistChats` in `App` |
+| Story prompts | `STORY_PROMPTS` in `mockData.js`, prompt bar in `ChatScreen` |
+| Simulated reply / typing indicator | `sendAutoReply` + `replyTimer` in `ChatScreen` |
+| Emoji reactions | `reactToMessage` in `App`, reaction pills in `ChatScreen` |
+| Pin message → save to story | `togglePinMessage` in `App`, long-press action sheet in `ChatScreen` |
+| Chat message count badge on cards | `messageCountByPost` useMemo in `GalleryScreen` |
+| Multi-screen navigation | `TabNavigator` + `Stack.Navigator` in `App` |
+| Full AsyncStorage persistence | `persistMemories`, `persistChats`, image URL migration on load |
+
+---
+
+## Data Model
+
+All seed data lives in [`mockData.js`](./story-saver-app/mockData.js):
+
+- **`USERS`** — four mock users with avatars (real portrait photos from Unsplash/Pexels), bios, and friend lists.
+- **`mockMemories`** — eight seed stories, each with a title, real topic-matched photo (Unsplash/Pexels), date, timestamp, tags, and owning `userId`.
+- **`mockChats`** — pre-seeded chat threads between users, each message carrying `senderId`, `postId` (optional), `text`, `time`, `reactions`, and `pinned`.
+- **`STORY_PROMPTS`** — six conversation starters shown in the chat prompt bar.
+- **`SUGGESTED_TAGS`** — twelve quick-add tag suggestions.
+- **`AUTO_REPLIES`** — seven canned friend replies for the simulated typing flow.
+- **`REACTIONS`** — five emoji used in the reaction picker.
+
+---
+
+## Demo Flow (recommended for showcase)
+
+1. **Log in as Jane.**
+2. Open the **Beach Day at Santa Monica** story (Alice's post). Note the tags and conversations section.
+3. Tap **Alice** in the conversations list → Chat opens with the story banner.
+4. Use the **story prompt** ("What do you remember most about this day?") — send it.
+5. Watch the **typing indicator**, then Alice's auto-reply.
+6. **Long-press Alice's reply** → tap ❤️ to react, then **Pin to story**.
+7. Go back to the story → see the pinned highlight under **"The story so far"**.
+8. Back in the Gallery, toggle to **Timeline view**. Filter by `#beach`. Sort by Oldest.
+9. Add a new story with **+**, tag it, delete it with the trash icon.
+10. Switch to **Friends tab** → open a friend profile → tap a post → same Story Detail flow from a different entry point.
 
 ---
 
 ## Repository Structure
-```text
+```
 storysaver-hci/
-├── README.md               # You are here
-├── story-saver-app/        # Active Story Saver React Native App
-│   ├── App.js              # Main application logic, navigation, screens, and AsyncStorage
-│   ├── mockData.js         # Users, mock stories, and seeded private chat threads
+├── README.md
+├── story-saver-app/            # Active prototype
+│   ├── App.js                  # All screens, navigation, context, and state logic
+│   ├── mockData.js             # Users, stories, chats, prompts, and constants
 │   ├── app.json
 │   └── package.json
-└── insta-mock-app/         # Deprecated Instagram simulation (kept for reference only)
+└── insta-mock-app/             # Deprecated (kept for reference)
     ├── App.js
     └── package.json
 ```
