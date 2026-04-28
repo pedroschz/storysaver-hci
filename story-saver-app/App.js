@@ -157,16 +157,17 @@ function GalleryScreen({ navigation }) {
     return isMyStory || isFriendStory;
   });
 
-  // Map of postId -> count of unread-ish messages (we just count any messages since UI mock has no read state)
+  // Map of postId -> count of messages in chats the current user is part of.
   const messageCountByPost = useMemo(() => {
     const out = {};
-    Object.values(chats).forEach(thread => {
+    Object.entries(chats).forEach(([key, thread]) => {
+      if (!key.split(':').includes(currentUser.id)) return;
       thread.forEach(m => {
         if (m.postId) out[m.postId] = (out[m.postId] || 0) + 1;
       });
     });
     return out;
-  }, [chats]);
+  }, [chats, currentUser.id]);
 
   const availableTags = useMemo(() => {
     const set = new Set();
@@ -556,11 +557,14 @@ function StoryDetailScreen({ navigation, route }) {
 
   const friends = currentUser.friends.map(id => USERS[id]).filter(Boolean);
 
-  // All pinned messages across all my chats that reference this post (the "saved story")
+  // For my own stories: pins from any of my chats. For someone else's story:
+  // only pins from my chat with the story author (matches the Conversations list).
   const pinnedMessages = useMemo(() => {
     const out = [];
+    const restrictedKey = isMine ? null : chatKey(currentUser.id, post.userId);
     Object.entries(chats).forEach(([key, msgs]) => {
       if (!key.includes(currentUser.id)) return;
+      if (restrictedKey && key !== restrictedKey) return;
       msgs.forEach(m => {
         if (m.postId === post.id && m.pinned) {
           out.push({ ...m, _threadKey: key });
@@ -568,9 +572,10 @@ function StoryDetailScreen({ navigation, route }) {
       });
     });
     return out.sort((a, b) => (a.id < b.id ? -1 : 1));
-  }, [chats, currentUser.id, post.id]);
+  }, [chats, currentUser.id, post.id, post.userId, isMine]);
 
-  const threadsByFriend = friends.map(f => {
+  const conversationPartners = isMine ? friends : (author ? [author] : []);
+  const threadsByFriend = conversationPartners.map(f => {
     const k = chatKey(currentUser.id, f.id);
     const msgs = (chats[k] || []).filter(m => m.postId === post.id);
     return { friend: f, last: msgs[msgs.length - 1], count: msgs.length };
@@ -632,46 +637,58 @@ function StoryDetailScreen({ navigation, route }) {
         )}
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Tags</Text>
-        <View style={styles.tagWrap}>
-          {tags.length === 0 && (
-            <Text style={styles.helperText}>No tags yet — add some to organize your gallery.</Text>
-          )}
-          {tags.map(t => (
-            <TouchableOpacity key={t} style={styles.tagChipFilled} onPress={() => removeTag(t)}>
-              <Text style={styles.tagChipFilledText}>#{t}</Text>
-              <Ionicons name="close" size={12} color="#fff" style={{ marginLeft: 4 }} />
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <View style={styles.tagInputRow}>
-          <TextInput
-            style={styles.tagInput}
-            placeholder="Add a tag (e.g. travel)"
-            placeholderTextColor="#999"
-            value={tagInput}
-            onChangeText={setTagInput}
-            onSubmitEditing={() => addTag(tagInput)}
-            returnKeyType="done"
-            autoCapitalize="none"
-          />
-          <TouchableOpacity style={styles.tagAddButton} onPress={() => addTag(tagInput)}>
-            <Ionicons name="add" size={18} color="#fff" />
-          </TouchableOpacity>
-        </View>
-
-        {suggestable.length > 0 && (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
-            {suggestable.map(t => (
-              <TouchableOpacity key={t} style={styles.tagChipOutline} onPress={() => addTag(t)}>
-                <Text style={styles.tagChipOutlineText}>+ #{t}</Text>
-              </TouchableOpacity>
+      {(isMine || tags.length > 0) && (
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Tags</Text>
+          <View style={styles.tagWrap}>
+            {tags.length === 0 && isMine && (
+              <Text style={styles.helperText}>No tags yet — add some to organize your gallery.</Text>
+            )}
+            {tags.map(t => (
+              isMine ? (
+                <TouchableOpacity key={t} style={styles.tagChipFilled} onPress={() => removeTag(t)}>
+                  <Text style={styles.tagChipFilledText}>#{t}</Text>
+                  <Ionicons name="close" size={12} color="#fff" style={{ marginLeft: 4 }} />
+                </TouchableOpacity>
+              ) : (
+                <View key={t} style={styles.tagChipFilled}>
+                  <Text style={styles.tagChipFilledText}>#{t}</Text>
+                </View>
+              )
             ))}
-          </ScrollView>
-        )}
-      </View>
+          </View>
+
+          {isMine && (
+            <>
+              <View style={styles.tagInputRow}>
+                <TextInput
+                  style={styles.tagInput}
+                  placeholder="Add a tag (e.g. travel)"
+                  placeholderTextColor="#999"
+                  value={tagInput}
+                  onChangeText={setTagInput}
+                  onSubmitEditing={() => addTag(tagInput)}
+                  returnKeyType="done"
+                  autoCapitalize="none"
+                />
+                <TouchableOpacity style={styles.tagAddButton} onPress={() => addTag(tagInput)}>
+                  <Ionicons name="add" size={18} color="#fff" />
+                </TouchableOpacity>
+              </View>
+
+              {suggestable.length > 0 && (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
+                  {suggestable.map(t => (
+                    <TouchableOpacity key={t} style={styles.tagChipOutline} onPress={() => addTag(t)}>
+                      <Text style={styles.tagChipOutlineText}>+ #{t}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              )}
+            </>
+          )}
+        </View>
+      )}
 
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Conversations</Text>
@@ -744,7 +761,7 @@ function FriendsScreen({ navigation }) {
 }
 
 function ProfileScreen() {
-  const { currentUser, memories, logout, replayOnboarding } = useContext(AppContext);
+  const { currentUser, memories, logout, replayOnboarding, resetDemoChats } = useContext(AppContext);
   const myMemories = memories.filter(m => m.userId === currentUser.id);
 
   const handleLogout = () => {
@@ -752,6 +769,17 @@ function ProfileScreen() {
       { text: 'Cancel', style: 'cancel' },
       { text: 'Log Out', style: 'destructive', onPress: logout },
     ]);
+  };
+
+  const handleResetDemo = () => {
+    Alert.alert(
+      'Reset demo chats',
+      'Clears every pin and trims each conversation back to its first message. Photos and tags are kept.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Reset', style: 'destructive', onPress: resetDemoChats },
+      ]
+    );
   };
 
   return (
@@ -792,6 +820,11 @@ function ProfileScreen() {
           <Text style={styles.settingText}>Show intro again</Text>
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </TouchableOpacity>
+        <TouchableOpacity style={styles.settingRow} onPress={handleResetDemo}>
+          <Ionicons name="refresh-outline" size={24} color={COLORS.darkBurgundy} />
+          <Text style={styles.settingText}>Reset demo chats</Text>
+          <Ionicons name="chevron-forward" size={20} color="#ccc" />
+        </TouchableOpacity>
         <TouchableOpacity style={[styles.settingRow, { borderBottomWidth: 0 }]} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={24} color={COLORS.mediumPink} />
           <Text style={[styles.settingText, { color: COLORS.mediumPink }]}>Log Out</Text>
@@ -808,7 +841,7 @@ function FriendProfileScreen({ navigation, route }) {
   const friend = USERS[friendId];
 
   const posts = memories
-    .filter(m => m.userId === friendId || m.userId === currentUser.id)
+    .filter(m => m.userId === friendId)
     .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
   if (!friend) {
@@ -1193,9 +1226,12 @@ export default function App() {
     setMemories(next);
     try { await AsyncStorage.setItem(STORAGE_KEYS.MEMORIES, JSON.stringify(next)); } catch {}
   };
-  const persistChats = async (next) => {
-    setChats(next);
-    try { await AsyncStorage.setItem(STORAGE_KEYS.CHATS, JSON.stringify(next)); } catch {}
+  const updateChats = (updater) => {
+    setChats(prev => {
+      const next = updater(prev);
+      AsyncStorage.setItem(STORAGE_KEYS.CHATS, JSON.stringify(next)).catch(() => {});
+      return next;
+    });
   };
 
   const login = async (userId) => {
@@ -1225,8 +1261,10 @@ export default function App() {
 
   const appendMessage = (otherUserId, msg) => {
     const key = chatKey(currentUserId, otherUserId);
-    const next = { ...chats, [key]: [...(chats[key] || []), msg] };
-    persistChats(next);
+    updateChats(prev => ({
+      ...prev,
+      [key]: [...(prev[key] || []), msg],
+    }));
   };
 
   const sendMessage = (otherUserId, text, postId) => {
@@ -1254,20 +1292,19 @@ export default function App() {
 
   const togglePinMessage = (otherUserId, msgId) => {
     const key = chatKey(currentUserId, otherUserId);
-    const thread = chats[key] || [];
-    const next = {
-      ...chats,
-      [key]: thread.map(m => (m.id === msgId ? { ...m, pinned: !m.pinned } : m)),
-    };
-    persistChats(next);
+    updateChats(prev => ({
+      ...prev,
+      [key]: (prev[key] || []).map(m =>
+        m.id === msgId ? { ...m, pinned: !m.pinned } : m
+      ),
+    }));
   };
 
   const reactToMessage = (otherUserId, msgId, emoji) => {
     const key = chatKey(currentUserId, otherUserId);
-    const thread = chats[key] || [];
-    const next = {
-      ...chats,
-      [key]: thread.map(m => {
+    updateChats(prev => ({
+      ...prev,
+      [key]: (prev[key] || []).map(m => {
         if (m.id !== msgId) return m;
         const r = { ...(m.reactions || {}) };
         const list = r[emoji] || [];
@@ -1277,8 +1314,18 @@ export default function App() {
         if (r[emoji].length === 0) delete r[emoji];
         return { ...m, reactions: r };
       }),
-    };
-    persistChats(next);
+    }));
+  };
+
+  const resetDemoChats = () => {
+    updateChats(prev => {
+      const next = {};
+      Object.entries(prev).forEach(([key, msgs]) => {
+        const first = (msgs || [])[0];
+        next[key] = first ? [{ ...first, pinned: false }] : [];
+      });
+      return next;
+    });
   };
 
   if (loading) {
@@ -1297,6 +1344,7 @@ export default function App() {
       addMemory, deleteMemory, updateMemoryTags,
       sendMessage, sendAutoReply,
       togglePinMessage, reactToMessage,
+      resetDemoChats,
       login, logout, replayOnboarding,
     }}>
       <NavigationContainer>
